@@ -1,0 +1,20 @@
+#define MOTOR_Z_UP        6 
+#define MOTOR_Z_DOWN      7
+
+void setup() {
+  Serial.begin(9600);
+ pinMode(MOTOR_Z_UP, OUTPUT);
+  pinMode(MOTOR_Z_DOWN, OUTPUT);
+}
+void loop()
+{
+
+ digitalWrite(MOTOR_Z_UP, HIGH);
+ digitalWrite(MOTOR_Z_DOWN, LOW);
+ delay(1000);
+ digitalWrite(MOTOR_Z_UP, LOW);
+ digitalWrite(MOTOR_Z_DOWN, LOW);
+
+
+
+}

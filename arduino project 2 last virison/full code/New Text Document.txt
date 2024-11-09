@@ -1,0 +1,178 @@
+/*********** include used library ***************/
+
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+
+
+/******************* rs pins ****************************/
+
+SoftwareSerial bluetooth(10, 11); // RX, TX pins conectet to bluetooth TX & RX
+const int relay1_forward = 4; // Motor 1 pin 1
+const int relay1_backward = 5; // Motor 1 pin 2
+const int relay2_forward = 6; // Motor 2 pin 1
+const int relay2_backward = 7; // Motor 2 pin 2
+
+
+
+/*******************pump**********************/
+const int pumpPin = 8;  // Replace with the actual pin connected to the pump
+const int pumpCapacity = 350;  // Gallons per hour (GPH)
+
+
+
+/*********************     valve function ***************************/
+
+int sensorPin = A0;
+int valvePin = 12;  // Assuming the valve control pin is connected to digital pin 12
+bool valveState = false;  // Variable to track the valve state
+
+
+
+/**************************function ************************************/
+float round_to_dp(float in_value, int decimal_place);
+bool controlValve();
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+ Serial.begin(9600);  // Optional for debugging
+ pinMode(valvePin, OUTPUT);  // Set the valve control pin as output
+ pinMode(pumpPin, OUTPUT);
+
+
+
+
+
+}
+void loop()
+
+  { 
+
+  }
+/***********************rs function *********************/
+
+void forward() {
+  digitalWrite(relay1_forward, HIGH); // Set motor 1 to forward
+  digitalWrite(relay1_backward, LOW);
+
+  digitalWrite(relay2_forward, HIGH); // Set motor 2 to forward
+  digitalWrite(relay2_backward, LOW);
+}
+
+void backward() {
+  digitalWrite(relay1_forward, LOW); // Set motor 1 to backward
+  digitalWrite(relay1_backward, HIGH);
+
+  digitalWrite(relay2_forward, LOW); // Set motor 2 to backward
+  digitalWrite(relay2_backward, HIGH);
+}
+
+void left() {
+  digitalWrite(relay1_forward, LOW); // Set motor 1 to stop
+  digitalWrite(relay1_backward, LOW);
+
+  digitalWrite(relay2_forward, HIGH); // Set motor 2 to forward
+  digitalWrite(relay2_backward, LOW);
+}
+
+void right() {
+  digitalWrite(relay1_forward, HIGH); // Set motor 1 to forward
+  digitalWrite(relay1_backward, LOW);
+
+  digitalWrite(relay2_forward, LOW); // Set motor 2 to stop
+  digitalWrite(relay2_backward, LOW);
+}
+
+void stop() {
+  digitalWrite(relay1_forward, LOW); // Set both motors to stop
+  digitalWrite(relay1_backward, LOW);
+
+  digitalWrite(relay2_forward, LOW);
+  digitalWrite(relay2_backward, LOW);
+}
+
+/***************************control pump with delay************************/
+void activatePump(float suctionTime) {
+  Serial.println("Activating pump...");
+
+  // Convert suction time from hours to milliseconds
+  long pumpOnTimeMs = suctionTime * 3600 * 1000;
+
+  digitalWrite(pumpPin, HIGH);  // Turn on the pump
+  delay(pumpOnTimeMs);          // Keep the pump on for the calculated time
+  digitalWrite(pumpPin, LOW);   // Turn off the pump
+
+  Serial.println("Pump deactivated.");
+}
+
+// Assuming you have a function that retrieves the oil area from the camera
+// Replace with your actual camera integration function
+float getOilAreaFromCamera() {
+  // ... (Your camera code to get the oil area)
+}
+
+/*********************control valve**********************/
+
+bool controlValve()
+ {
+  float volt = 0;
+  float ntu;
+
+  for (int i = 0; i < 800; i++) {
+    volt += ((float)analogRead(sensorPin) / 1023) * 5;
+  }
+  volt = volt / 800;
+  volt = round_to_dp(volt, 2);
+
+  if (volt < 2.5) {
+    ntu = 3000;
+  } else {
+    ntu = -1120.4 * sq(volt) + 5742.3 * volt - 4353.8;
+  }
+
+  Serial.print("volt: ");
+  Serial.print(volt);
+  Serial.print(' v');
+
+  Serial.print("  Turbidity:");
+  Serial.print(ntu);
+  Serial.print(" NTU");
+  Serial.println();
+
+  // Valve control based on sensor reading
+  if (ntu > 1000) {  // Oil detected
+    digitalWrite(valvePin, LOW);  // Close the valve
+    return false;  // Set valve state to closed and return false
+  } else {  // Water detected
+    digitalWrite(valvePin, HIGH);  // Open the valve
+    return true;  // Set valve state to open and return true
+  }
+}
+
+float round_to_dp(float in_value, int decimal_place)
+ {
+  float multiplier = powf(10.0f, decimal_place);
+  in_value = roundf(in_value * multiplier) / multiplier;
+  return in_value;
+ }
+
+
+
+ float calculateSuctionTime(float oilArea) 
+
+{
+  // Convert oil area to square feet
+  float oilAreaFt2 = oilArea * 10.764;
+
+  // Calculate oil volume in gallons (assuming shallow oil slick)
+  float oilVolumeGal = oilAreaFt2 * 0.0328;
+
+  // Calculate suction time in hours
+  return oilVolumeGal / pumpCapacity;
+}
+
+
+
+
+

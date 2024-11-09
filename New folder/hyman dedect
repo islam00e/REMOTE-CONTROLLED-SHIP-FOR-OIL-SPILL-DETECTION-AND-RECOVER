@@ -1,0 +1,38 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+
+# Load the dataset
+data = pd.read_csv('oil_spill_dataset.csv')
+images = data['image']
+labels = data['label']  # 0 for clean water, 1 for oil spill
+
+# Preprocess the images
+# ... Your preprocessing code here ...
+
+# Extract features from the preprocessed images
+features = extract_features(images)
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2)
+
+# Create and train a Support Vector Machine (SVM) classifier
+clf = SVC()
+clf.fit(X_train, y_train)
+
+# Evaluate the model's performance on the test set
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-score:", f1)
+
+# Save the trained model for future use
+import pickle
+pickle.dump(clf, open('oil_spill_detector.pkl', 'wb'))

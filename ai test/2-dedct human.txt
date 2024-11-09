@@ -1,0 +1,57 @@
+import cv2
+import numpy as np
+
+
+
+def detect_human_percentage(image):
+  """Detects the percentage of human in the image.
+
+  Args:
+    image: A numpy array representing the image.
+
+  Returns:
+    The percentage of human in the image.
+  """
+
+  # Load the Haar cascade classifier for human detection.
+  haar_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+  
+  # Convert the image to grayscale.
+  gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+  # Detect humans in the grayscale image.
+  human_faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+
+  # Calculate the percentage of human in the image.
+  human_percentage = len(human_faces) / image.size * 100
+
+  return human_percentage
+
+# Open the camera.
+cap = cv2.VideoCapture(0)
+
+# Check if the camera is opened.
+if not cap.isOpened():
+  print('Failed to open camera.')
+  exit()
+
+# Continuously capture images from the camera and display them.
+while True:
+
+  # Capture an image from the camera.
+  ret, image = cap.read()
+
+  # If an image was captured successfully, detect the percentage of human in the image and display it.
+  if ret:
+    human_percentage = detect_human_percentage(image)
+    print('Human percentage: {}%'.format(human_percentage))
+
+  # Wait for a key press to quit.
+  if cv2.waitKey(1) & 0xFF == ord('q'):
+    break
+
+# Close the camera.
+# cap.release()
+
+# Destroy all windows.
+cv2.destroyAllWindows()

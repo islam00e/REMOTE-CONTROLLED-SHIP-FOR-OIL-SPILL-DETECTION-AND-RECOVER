@@ -1,0 +1,29 @@
+import cv2
+
+# Open the camera.
+cap = cv2.VideoCapture(0)
+
+# Check if the camera is opened.
+if not cap.isOpened():
+    print('Failed to open camera.')
+    exit()
+
+# Continuously capture images from the camera and display them.
+while True:
+
+    # Capture an image from the camera.
+    ret, image = cap.read()
+
+    # If an image was captured successfully, display it.
+    if ret:
+        cv2.imshow('Image', image)
+
+    # Wait for a key press to quit.
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Close the camera.
+cap.release()
+
+# Destroy all windows.
+cv2.destroyAllWindows()
